@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import Image from "next/image";
 
 const projects = [
@@ -39,12 +39,27 @@ const projects = [
 
 export default function Projects() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const [headerHeight, setHeaderHeight] = useState(0);
+
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end end"]
   });
 
   const bgY = useTransform(scrollYProgress, [0, 1], ["0%", "20%"]);
+
+  // Measure the sticky header so we can offset the stacked cards correctly.
+  useLayoutEffect(() => {
+    if (!headerRef.current) return;
+    const measure = () => {
+      const h = headerRef.current?.getBoundingClientRect().height ?? 0;
+      setHeaderHeight(Math.round(h));
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
 
   return (
     <section
@@ -62,7 +77,10 @@ export default function Projects() {
       </div>
 
       {/* Header */}
-      <div className="px-6 md:px-12 py-12 sticky top-0 bg-charcoal/40 backdrop-blur-md z-30 border-b border-flax/10">
+      <div
+        ref={headerRef}
+        className="px-6 md:px-12 py-12 sticky top-0 bg-charcoal/40 backdrop-blur-md z-20 border-b border-flax/10"
+      >
         <h2 className="text-heading-lg uppercase tracking-tighter">Projects</h2>
       </div>
 
@@ -72,8 +90,10 @@ export default function Projects() {
             key={project.id}
             className={`sticky w-full h-screen ${project.color} backdrop-blur-sm flex flex-col justify-center border-t border-flax/10 origin-top shadow-[0_-10px_50px_rgba(0,0,0,0.7)]`}
             style={{
-              top: `calc(${index * 48}px)`,
-              zIndex: index + 1
+              // Card 0 starts below the sticky header.
+              // Next cards move up to cover the headline as you scroll.
+              top: headerHeight ? headerHeight - index * headerHeight : index * 48,
+              zIndex: 40 + index
             }}
           >
             <div className="w-full max-w-[1500px] mx-auto px-6 md:px-12 flex flex-col lg:flex-row gap-10 lg:gap-20 h-[90vh] py-10">
