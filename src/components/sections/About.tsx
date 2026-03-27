@@ -16,7 +16,7 @@ export default function About() {
             className="text-heading-lg uppercase tracking-tighter leading-none"
           >
             Builder, Developer, <br />
-            <span className="opacity-40 italic">AI Geek /</span>
+            <span className="opacity-40 italic">Tech Geek /</span>
           </motion.h2>
         </div>
 
